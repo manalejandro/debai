@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3584e4"/>
+      <stop offset="100%" style="stop-color:#1c71d8"/>
+    </linearGradient>
+    <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#57e389"/>
+      <stop offset="100%" style="stop-color:#33d17a"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#bg-gradient)"/>
+  
+  <!-- Outer ring -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3"/>
+  
+  <!-- AI brain/circuit pattern -->
+  <g fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Central node -->
+    <circle cx="64" cy="64" r="12" fill="url(#accent-gradient)" stroke="none"/>
+    
+    <!-- Connection lines -->
+    <line x1="64" y1="52" x2="64" y2="32"/>
+    <line x1="64" y1="76" x2="64" y2="96"/>
+    <line x1="52" y1="64" x2="32" y2="64"/>
+    <line x1="76" y1="64" x2="96" y2="64"/>
+    
+    <!-- Diagonal connections -->
+    <line x1="55" y1="55" x2="40" y2="40"/>
+    <line x1="73" y1="55" x2="88" y2="40"/>
+    <line x1="55" y1="73" x2="40" y2="88"/>
+    <line x1="73" y1="73" x2="88" y2="88"/>
+    
+    <!-- Outer nodes -->
+    <circle cx="64" cy="28" r="6" fill="#ffffff"/>
+    <circle cx="64" cy="100" r="6" fill="#ffffff"/>
+    <circle cx="28" cy="64" r="6" fill="#ffffff"/>
+    <circle cx="100" cy="64" r="6" fill="#ffffff"/>
+    
+    <!-- Corner nodes -->
+    <circle cx="36" cy="36" r="5" fill="#ffffff"/>
+    <circle cx="92" cy="36" r="5" fill="#ffffff"/>
+    <circle cx="36" cy="92" r="5" fill="#ffffff"/>
+    <circle cx="92" cy="92" r="5" fill="#ffffff"/>
+  </g>
+  
+  <!-- D letter stylized -->
+  <text x="64" y="72" font-family="sans-serif" font-size="24" font-weight="bold" 
+        fill="#ffffff" text-anchor="middle">D</text>
+</svg>

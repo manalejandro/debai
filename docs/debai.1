@@ -1,0 +1,172 @@
+.\" Manpage for debai
+.\" Contact debai@example.com for errors or typos.
+.TH DEBAI 1 "January 2026" "Debai 1.0.0" "User Commands"
+.SH NAME
+debai \- AI Agent Management System for GNU/Linux
+.SH SYNOPSIS
+.B debai
+[\fIOPTIONS\fR] \fICOMMAND\fR [\fIARGS\fR]...
+.SH DESCRIPTION
+.B debai
+is a comprehensive application for generating and managing AI agents that automate system tasks like package updates, application configuration, and resource management.
+.PP
+Debai uses local AI models via Docker Model Runner and local agents via cagent. It provides both a command-line interface and a graphical user interface (GTK4/Adwaita).
+.SH OPTIONS
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output with debug information.
+.TP
+.BR \-c ", " \-\-config " " \fIFILE\fR
+Use specified configuration file instead of default.
+.TP
+.BR \-\-version
+Show version information and exit.
+.TP
+.BR \-\-help
+Show help message and exit.
+.SH COMMANDS
+.SS "General Commands"
+.TP
+.B status
+Show system and Debai status, including dependencies and Docker information.
+.TP
+.B init [\-\-full]
+Initialize Debai environment. Use \-\-full to also pull recommended models.
+.TP
+.B monitor [\-i INTERVAL]
+Monitor system resources in real-time. Default interval is 2 seconds.
+.SS "Agent Commands"
+.TP
+.B agent list [\-s STATUS]
+List all agents. Filter by status: running, stopped, or all.
+.TP
+.B agent create \-n NAME [\-t TYPE] [\-m MODEL] [\-\-template NAME]
+Create a new agent. Available types: system, package, config, resource, security, backup, network, custom.
+.TP
+.B agent start AGENT_ID
+Start an agent.
+.TP
+.B agent stop AGENT_ID
+Stop an agent.
+.TP
+.B agent delete AGENT_ID [\-f]
+Delete an agent. Use \-f to skip confirmation.
+.TP
+.B agent chat AGENT_ID
+Start an interactive chat session with an agent.
+.TP
+.B agent templates
+List available agent templates.
+.SS "Model Commands"
+.TP
+.B model list
+List available models.
+.TP
+.B model pull MODEL_ID
+Pull a model from Docker Model Runner.
+.TP
+.B model remove MODEL_ID [\-f]
+Remove a model. Use \-f to skip confirmation.
+.TP
+.B model recommended
+Show recommended models for different use cases.
+.SS "Task Commands"
+.TP
+.B task list [\-s STATUS]
+List all tasks. Filter by status: pending, running, completed, failed, or all.
+.TP
+.B task create \-n NAME \-c COMMAND [\-p PRIORITY] [\-\-template NAME]
+Create a new task.
+.TP
+.B task run TASK_ID
+Run a task immediately.
+.TP
+.B task templates
+List available task templates.
+.SS "Generate Commands"
+.TP
+.B generate iso [\-o OUTPUT] [\-\-base DISTRO] [\-\-include\-agents]
+Generate a bootable ISO image with Debai pre-installed.
+.TP
+.B generate qcow2 [\-o OUTPUT] [\-\-size SIZE] [\-\-base DISTRO]
+Generate a QCOW2 disk image for QEMU/KVM.
+.TP
+.B generate compose [\-o OUTPUT] [\-\-include\-gui]
+Generate a Docker Compose configuration.
+.SH EXAMPLES
+.PP
+Initialize Debai and pull a model:
+.RS
+.nf
+$ debai init --full
+.fi
+.RE
+.PP
+Create an agent from template:
+.RS
+.nf
+$ debai agent create --name "Updates" --template package_updater
+.fi
+.RE
+.PP
+Chat with an agent:
+.RS
+.nf
+$ debai agent chat abc123
+.fi
+.RE
+.PP
+Generate an ISO image:
+.RS
+.nf
+$ debai generate iso --output debai.iso --include-agents
+.fi
+.RE
+.SH FILES
+.TP
+.I /etc/debai/config.yaml
+System-wide configuration file.
+.TP
+.I ~/.config/debai/
+User configuration directory.
+.TP
+.I /var/lib/debai/
+Data directory for agents, models, and tasks.
+.TP
+.I /var/log/debai/
+Log files directory.
+.SH ENVIRONMENT
+.TP
+.B DEBAI_CONFIG_DIR
+Override the configuration directory.
+.TP
+.B DEBAI_DATA_DIR
+Override the data directory.
+.TP
+.B DEBAI_LOG_LEVEL
+Set the logging level (debug, info, warning, error).
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+General error.
+.TP
+.B 2
+Command line syntax error.
+.SH SEE ALSO
+.BR debai-gui (1),
+.BR docker (1),
+.BR qemu-img (1),
+.BR systemctl (1)
+.SH BUGS
+Report bugs at: https://github.com/debai/debai/issues
+.SH AUTHOR
+Debai Team <debai@example.com>
+.SH COPYRIGHT
+Copyright \(co 2025-2026 Debai Team.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+.PP
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.

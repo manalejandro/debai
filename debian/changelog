@@ -1,0 +1,14 @@
+debai (1.0.0-1) unstable; urgency=medium
+
+  * Initial release.
+  * Features:
+    - AI agent management with cagent integration
+    - Model management with Docker Model Runner
+    - Task automation and scheduling
+    - GTK4/Adwaita graphical user interface
+    - Command-line interface with rich output
+    - ISO, QCOW2, and Docker Compose generation
+    - System resource monitoring
+    - Debian packaging support
+
+ -- Debai Team <debai@example.com>  Sat, 18 Jan 2026 12:00:00 +0000

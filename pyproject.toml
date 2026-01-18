@@ -1,0 +1,109 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "debai"
+version = "1.0.0"
+description = "AI Agent Management System for GNU/Linux - Automate system tasks with local AI agents"
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+authors = [
+    {name = "Debai Team", email = "debai@example.com"}
+]
+maintainers = [
+    {name = "Debai Team", email = "debai@example.com"}
+]
+keywords = [
+    "ai", "agents", "automation", "linux", "system-management",
+    "docker", "qemu", "devops", "cagent", "docker-model"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: X11 Applications :: GTK",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPL v3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "jinja2>=3.1.0",
+    "pydantic>=2.0.0",
+    "aiohttp>=3.9.0",
+    "asyncio>=3.4.3",
+    "docker>=7.0.0",
+    "psutil>=5.9.0",
+    "pygobject>=3.44.0",
+    "tomli>=2.0.0;python_version<'3.11'",
+    "typing-extensions>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=2.0.0",
+]
+
+[project.scripts]
+debai = "debai.cli:main"
+debai-gui = "debai.gui:main"
+
+[project.urls]
+Homepage = "https://github.com/debai/debai"
+Documentation = "https://debai.readthedocs.io"
+Repository = "https://github.com/debai/debai.git"
+Issues = "https://github.com/debai/debai/issues"
+Changelog = "https://github.com/debai/debai/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+debai = [
+    "templates/**/*",
+    "resources/**/*",
+    "data/**/*",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

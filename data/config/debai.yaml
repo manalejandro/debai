@@ -1,0 +1,126 @@
+# Debai Configuration File
+# AI Agent Management System for GNU/Linux
+
+# General settings
+general:
+  # Logging level: debug, info, warning, error
+  log_level: info
+  
+  # Log file location
+  log_file: /var/log/debai/debai.log
+  
+  # Data directory
+  data_dir: /var/lib/debai
+  
+  # Configuration directory
+  config_dir: /etc/debai
+
+# Agent settings
+agents:
+  # Directory for agent configurations
+  config_dir: /etc/debai/agents
+  
+  # Maximum number of concurrent agents
+  max_concurrent: 5
+  
+  # Auto-start agents on boot
+  auto_start: true
+  
+  # Default timeout for agent operations (seconds)
+  default_timeout: 300
+  
+  # Working directory for agents
+  working_dir: /tmp/debai/agents
+
+# Model settings
+models:
+  # Default model to use
+  default: llama3.2:3b
+  
+  # Model cache directory
+  cache_dir: /var/cache/debai/models
+  
+  # Docker Model Runner endpoint
+  runner_endpoint: http://localhost:11434
+  
+  # Maximum memory for models (MB)
+  max_memory_mb: 4096
+  
+  # GPU layers to offload (0 = CPU only)
+  gpu_layers: 0
+
+# Task settings
+tasks:
+  # Directory for task configurations
+  config_dir: /etc/debai/tasks
+  
+  # Maximum concurrent tasks
+  max_concurrent: 3
+  
+  # Task history retention (days)
+  history_retention_days: 30
+
+# API settings
+api:
+  # Enable REST API
+  enabled: true
+  
+  # API host
+  host: 127.0.0.1
+  
+  # API port
+  port: 8000
+  
+  # Enable authentication
+  auth_enabled: false
+
+# Monitoring settings
+monitoring:
+  # Enable resource monitoring
+  enabled: true
+  
+  # Monitoring interval (seconds)
+  interval: 5
+  
+  # History size (number of samples)
+  history_size: 1000
+  
+  # Alert thresholds
+  thresholds:
+    cpu_percent: 80
+    memory_percent: 85
+    disk_percent: 90
+
+# Security settings
+security:
+  # Commands that are never allowed
+  denied_commands:
+    - "rm -rf /"
+    - "dd if=/dev/zero"
+    - ":(){ :|:& };:"
+    - "mkfs"
+    - "> /dev/sda"
+  
+  # Require confirmation for destructive operations
+  require_confirmation: true
+  
+  # Sandbox agent execution
+  sandbox_enabled: true
+
+# Notification settings
+notifications:
+  # Enable notifications
+  enabled: true
+  
+  # Desktop notifications
+  desktop: true
+  
+  # Email notifications (optional)
+  email:
+    enabled: false
+    smtp_host: ""
+    smtp_port: 587
+    smtp_user: ""
+    smtp_password: ""
+    from_address: ""
+    to_addresses: []

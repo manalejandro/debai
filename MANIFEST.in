@@ -1,0 +1,20 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include pyproject.toml
+include requirements.txt
+
+recursive-include src *.py
+recursive-include data *
+recursive-include docs *.md *.rst *.1
+
+recursive-include debian *
+include debian/rules
+include debian/control
+include debian/changelog
+include debian/copyright
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store

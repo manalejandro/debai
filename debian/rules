@@ -1,0 +1,40 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+export PYBUILD_NAME = debai
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_build:
+	dh_auto_build
+	# Build man pages
+	mkdir -p debian/tmp/man
+	help2man --no-info --name="AI Agent Management System" \
+		--output=debian/tmp/man/debai.1 \
+		./src/debai/cli/main.py || true
+
+override_dh_auto_install:
+	dh_auto_install
+	# Install systemd service
+	install -D -m 644 data/systemd/debai.service \
+		debian/debai/lib/systemd/system/debai.service
+	# Install desktop file
+	install -D -m 644 data/applications/debai.desktop \
+		debian/debai/usr/share/applications/debai.desktop
+	# Install icons
+	install -D -m 644 data/icons/hicolor/scalable/apps/debai.svg \
+		debian/debai/usr/share/icons/hicolor/scalable/apps/debai.svg
+	# Install default configuration
+	install -D -m 644 data/config/debai.yaml \
+		debian/debai/etc/debai/config.yaml
+
+override_dh_installman:
+	dh_installman debian/tmp/man/*.1 || true
+
+override_dh_installsystemd:
+	dh_installsystemd --name=debai
+
+override_dh_auto_test:
+	# Skip tests during package build
+	true

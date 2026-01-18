@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create debai system user if not exists
+        if ! getent passwd debai > /dev/null; then
+            adduser --system --group --home /var/lib/debai \
+                --no-create-home --disabled-password \
+                --gecos "Debai AI Agent System" debai
+        fi
+
+        # Add debai user to docker group
+        if getent group docker > /dev/null; then
+            usermod -aG docker debai || true
+        fi
+
+        # Set permissions
+        chown -R debai:debai /var/lib/debai
+        chown -R debai:debai /var/log/debai
+        chmod 750 /var/lib/debai
+        chmod 750 /var/log/debai
+
+        # Initialize configuration if not exists
+        if [ ! -f /etc/debai/config.yaml ]; then
+            debai init --system 2>/dev/null || true
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

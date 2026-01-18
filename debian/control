@@ -1,0 +1,55 @@
+Source: debai
+Section: utils
+Priority: optional
+Maintainer: Debai Team <debai@example.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-pip,
+               python3-venv
+Standards-Version: 4.6.2
+Homepage: https://github.com/debai/debai
+Vcs-Git: https://github.com/debai/debai.git
+Vcs-Browser: https://github.com/debai/debai
+Rules-Requires-Root: no
+
+Package: debai
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3 (>= 3.10),
+         python3-click,
+         python3-yaml,
+         python3-jinja2,
+         python3-pydantic,
+         python3-aiohttp,
+         python3-psutil,
+         python3-gi,
+         gir1.2-gtk-4.0,
+         gir1.2-adw-1
+Recommends: docker.io,
+            qemu-utils,
+            genisoimage
+Suggests: qemu-system-x86
+Description: AI Agent Management System for GNU/Linux
+ Debai is a comprehensive application for generating and managing AI agents
+ that automate system tasks like package updates, application configuration,
+ and resource management.
+ .
+ Features:
+  - Local AI models via Docker Model Runner
+  - Local agents via cagent
+  - Interactive CLI and GTK GUI
+  - ISO, QCOW2, and Docker Compose generation
+  - Automated system management
+
+Package: debai-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Description: AI Agent Management System - documentation
+ Debai is a comprehensive application for generating and managing AI agents
+ that automate system tasks.
+ .
+ This package contains the documentation.
