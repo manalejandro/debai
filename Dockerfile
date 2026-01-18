@@ -19,6 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     gnupg \
     lsb-release \
+    build-essential \
+    pkg-config \
+    cmake \
+    libcairo2-dev \
+    libgirepository-2.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Docker CLI (for Docker Model Runner integration)
