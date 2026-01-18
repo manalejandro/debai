@@ -207,7 +207,7 @@ class DebaiWindow(Adw.ApplicationWindow):
         super().__init__(**kwargs)
         
         self.set_title("Debai")
-        self.set_default_size(1200, 800)
+        self.set_default_size(1400, 900)
         
         # Main layout
         self._build_ui()
@@ -241,6 +241,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         # Navigation view
         self.nav_view = Adw.NavigationView()
+        self.nav_view.set_vexpand(True)
+        self.nav_view.set_hexpand(True)
         main_box.append(self.nav_view)
         
         # Main page with sidebar
@@ -260,6 +262,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         # Content area
         self.content_stack = Gtk.Stack()
         self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.content_stack.set_vexpand(True)
+        self.content_stack.set_hexpand(True)
         
         # Add content pages
         self.content_stack.add_named(self._create_dashboard_page(), "dashboard")
@@ -335,11 +339,17 @@ class DebaiWindow(Adw.ApplicationWindow):
     
     def _create_dashboard_page(self) -> Gtk.Widget:
         """Create the dashboard page."""
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
         page.set_margin_start(24)
         page.set_margin_end(24)
         page.set_margin_top(24)
         page.set_margin_bottom(24)
+        scrolled.set_child(page)
         
         # Welcome section
         welcome_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
@@ -446,6 +456,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_child(page)
         scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         return scrolled
     
@@ -477,6 +489,8 @@ class DebaiWindow(Adw.ApplicationWindow):
     def _create_agents_page(self) -> Gtk.Widget:
         """Create the agents page."""
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        page.set_vexpand(True)
+        page.set_hexpand(True)
         
         # Toolbar
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -507,6 +521,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         # Agent list
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         self.agents_list = Gtk.ListBox()
         self.agents_list.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -608,6 +624,8 @@ class DebaiWindow(Adw.ApplicationWindow):
     def _create_models_page(self) -> Gtk.Widget:
         """Create the models page."""
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        page.set_vexpand(True)
+        page.set_hexpand(True)
         
         # Toolbar
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -632,6 +650,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         # Model list
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         self.models_list = Gtk.ListBox()
         self.models_list.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -667,6 +687,8 @@ class DebaiWindow(Adw.ApplicationWindow):
     def _create_tasks_page(self) -> Gtk.Widget:
         """Create the tasks page."""
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        page.set_vexpand(True)
+        page.set_hexpand(True)
         
         # Toolbar
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
@@ -692,6 +714,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         # Task list
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         tasks_list = Gtk.ListBox()
         tasks_list.set_selection_mode(Gtk.SelectionMode.NONE)
@@ -728,11 +752,17 @@ class DebaiWindow(Adw.ApplicationWindow):
     
     def _create_generate_page(self) -> Gtk.Widget:
         """Create the generate page."""
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         page.set_margin_start(24)
         page.set_margin_end(24)
         page.set_margin_top(24)
         page.set_margin_bottom(24)
+        scrolled.set_child(page)
         
         title = Gtk.Label(label="Generate Distribution")
         title.add_css_class("title-2")
@@ -786,11 +816,6 @@ class DebaiWindow(Adw.ApplicationWindow):
         options_group.add(compose_row)
         
         page.append(options_group)
-        
-        # Scrollable
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_child(page)
-        scrolled.set_vexpand(True)
         
         return scrolled
     

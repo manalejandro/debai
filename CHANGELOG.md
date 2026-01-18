@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed debian/debai.manpages to point to correct man page location (docs/debai.1)
 - Fixed GTK4 GUI CSS loading - replaced deprecated Gtk.Settings.get_default().get_display() with Gdk.Display.get_default()
 - Added Gdk import to GUI application for proper display handling
+- Fixed GTK4 GUI layout - increased default window size to 1400x900
+- Fixed GTK4 GUI content expansion - all pages now properly expand to fill available space
+- Added proper vexpand and hexpand properties to navigation view, content stack, and all content pages
+- Fixed ScrolledWindow policies to properly handle content overflow
+- Made all content pages (dashboard, agents, models, tasks, generate) properly scrollable and expandable
 
 ## [1.0.0] - 2026-01-18
 
