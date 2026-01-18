@@ -221,12 +221,16 @@ class Task:
     async def _execute_command(self) -> dict[str, Any]:
         """Execute a shell command."""
         try:
+            # Merge system environment with task-specific environment
+            task_env = os.environ.copy()
+            task_env.update(self.config.environment)
+            
             self._process = await asyncio.create_subprocess_shell(
                 self.config.command,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=self.config.working_directory,
-                env={**dict(Path("/etc/environment").read_text().split("=")) if Path("/etc/environment").exists() else {}, **self.config.environment},
+                env=task_env,
             )
             
             try:
