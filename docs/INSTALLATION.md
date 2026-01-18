@@ -29,9 +29,52 @@ sudo apt install -y \
 
 #### Recommended
 
+**Docker Engine from Official Repository:**
+
+```bash
+# Add Docker's official GPG key
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+# Install Docker Engine, containerd, and Docker Compose
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+**For Ubuntu:**
+
+```bash
+# Add Docker's official GPG key
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+# Install Docker Engine, containerd, and Docker Compose
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+**Other utilities:**
+
 ```bash
 sudo apt install -y \
-    docker.io \
     qemu-utils \
     genisoimage
 ```
@@ -81,6 +124,8 @@ pip install -e .
 pip install -e ".[gui,dev,docs]"
 ```
 
+**Note:** Docker Engine must be installed separately from the official Docker repository. See the "Recommended" dependencies section above for installation instructions.
+
 ### Method 4: Build Debian Package
 
 ```bash
@@ -118,14 +163,33 @@ debai init --full
 
 ### Configure Docker (Required for Models)
 
+After installing Docker Engine from the official repository:
+
 ```bash
+# Verify Docker installation
+docker --version
+
 # Add your user to docker group
 sudo usermod -aG docker $USER
 
 # Restart Docker service
 sudo systemctl restart docker
 
+# Enable Docker to start on boot
+sudo systemctl enable docker
+
 # You may need to log out and back in for group changes to take effect
+# Or use: newgrp docker
+```
+
+**Test Docker installation:**
+
+```bash
+# Run test container
+docker run hello-world
+
+# Check if Docker daemon is running
+sudo systemctl status docker
 ```
 
 ### Verify Installation

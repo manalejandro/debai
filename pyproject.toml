@@ -66,8 +66,8 @@ docs = [
 ]
 
 [project.scripts]
-debai = "debai.cli:main"
-debai-gui = "debai.gui:main"
+debai = "debai.cli.main:main"
+debai-gui = "debai.gui.main:main"
 
 [project.urls]
 Homepage = "https://github.com/manalejandro/debai"

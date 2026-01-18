@@ -8,13 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Nothing yet
+- Build and test scripts for package verification (test-install.sh, quick-build.sh)
 
 ### Changed
-- Nothing yet
+- Updated Docker dependency from `docker.io` to official Docker Engine (`docker-ce`) from Docker's official Debian repository
+- Updated all documentation to include official Docker repository setup instructions
+- Updated installation guides with comprehensive Docker Engine installation steps for Debian and Ubuntu
+- Updated image generators (ISO, QCOW2) to install Docker Engine from official repository
+- Updated CLI help text to show official Docker installation instructions
 
 ### Fixed
-- Nothing yet
+- Fixed debian/rules to properly use pybuild with pyproject.toml
+- Fixed entry points in pyproject.toml (debai.cli.main:main instead of debai.cli:main)
+- Fixed Debian package to correctly install debai and debai-gui executables
+- Updated build dependencies in debian/control to include dh-python and pybuild-plugin-pyproject
+- Fixed PYBUILD_DESTDIR to install files to correct package directory (debian/debai)
+- Fixed debian/debai.manpages to point to correct man page location (docs/debai.1)
+- Fixed GTK4 GUI CSS loading - replaced deprecated Gtk.Settings.get_default().get_display() with Gdk.Display.get_default()
+- Added Gdk import to GUI application for proper display handling
 
 ## [1.0.0] - 2026-01-18
 

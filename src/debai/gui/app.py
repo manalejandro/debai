@@ -17,7 +17,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Adw, Gio, GLib, Gtk
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk
 
 from debai import __version__
 from debai.core.agent import AgentManager, AgentConfig, AgentType, get_agent_template, list_agent_templates
@@ -147,8 +147,14 @@ class DebaiApplication(Adw.Application):
         provider = Gtk.CssProvider()
         provider.load_from_data(css.encode())
         
+        # Get display from window or default display
+        if self.window:
+            display = self.window.get_display()
+        else:
+            display = Gdk.Display.get_default()
+        
         Gtk.StyleContext.add_provider_for_display(
-            self.window.get_display() if self.window else Gtk.Settings.get_default().get_display(),
+            display,
             provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
         )

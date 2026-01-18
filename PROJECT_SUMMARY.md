@@ -174,6 +174,7 @@ Total: ~6,500 lines of code across 45+ files
 - **CLI Framework**: Click + Rich
 - **GUI Framework**: GTK4 + libadwaita
 - **AI Models**: Docker Model Runner
+- **Container Runtime**: Docker Engine (docker-ce) from official Docker repository
 - **Agent Framework**: cagent
 - **Configuration**: YAML
 - **Templating**: Jinja2
@@ -279,14 +280,31 @@ debai generate compose
 
 ## Next Steps for Users
 
-1. **Install Dependencies**:
+1. **Install Docker Engine from Official Repository**:
    ```bash
-   sudo apt install docker.io qemu-utils genisoimage
+   # Add Docker's official GPG key
+   sudo apt-get update
+   sudo apt-get install ca-certificates curl
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+   sudo chmod a+r /etc/apt/keyrings/docker.asc
+   
+   # Add repository
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   
+   # Install Docker Engine
+   sudo apt-get update
+   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   
+   # Install other tools
+   sudo apt install qemu-utils genisoimage
    ```
 
 2. **Configure Docker**:
    ```bash
    sudo usermod -aG docker $USER
+   sudo systemctl enable docker
+   sudo systemctl start docker
    ```
 
 3. **Pull Models**:

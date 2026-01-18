@@ -10,7 +10,7 @@ debai \- AI Agent Management System for GNU/Linux
 .B debai
 is a comprehensive application for generating and managing AI agents that automate system tasks like package updates, application configuration, and resource management.
 .PP
-Debai uses local AI models via Docker Model Runner and local agents via cagent. It provides both a command-line interface and a graphical user interface (GTK4/Adwaita).
+Debai uses local AI models via Docker Model Runner (requires Docker Engine from official Docker repository) and local agents via cagent. It provides both a command-line interface and a graphical user interface (GTK4/Adwaita).
 .SH OPTIONS
 .TP
 .BR \-v ", " \-\-verbose
@@ -63,7 +63,7 @@ List available agent templates.
 List available models.
 .TP
 .B model pull MODEL_ID
-Pull a model from Docker Model Runner.
+Pull a model from Docker Model Runner. Requires Docker Engine to be installed from the official Docker repository.
 .TP
 .B model remove MODEL_ID [\-f]
 Remove a model. Use \-f to skip confirmation.

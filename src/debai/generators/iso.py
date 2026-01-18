@@ -171,7 +171,17 @@ echo "Installing Debai - AI Agent System..."
 
 # Install dependencies
 apt-get update
-apt-get install -y python3 python3-pip python3-venv docker.io qemu-utils
+apt-get install -y python3 python3-pip python3-venv qemu-utils ca-certificates curl
+
+# Install Docker from official repository
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Install Debai
 pip3 install debai
@@ -346,7 +356,7 @@ d-i partman/confirm_nooverwrite boolean true
 
 # Packages
 tasksel tasksel/first multiselect standard
-d-i pkgsel/include string python3 python3-pip docker.io openssh-server
+d-i pkgsel/include string python3 python3-pip openssh-server ca-certificates curl
 
 # GRUB
 d-i grub-installer/only_debian boolean true
@@ -356,7 +366,13 @@ d-i grub-installer/bootdev string default
 d-i finish-install/reboot_in_progress note
 
 # Post-installation
-d-i preseed/late_command string \\
+d-i preseed/late_command string \
+    in-target install -m 0755 -d /etc/apt/keyrings; \
+    in-target curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc; \
+    in-target chmod a+r /etc/apt/keyrings/docker.asc; \
+    in-target sh -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null'; \
+    in-target apt-get update; \
+    in-target apt-get install -y docker-ce docker-ce-cli containerd.io; \
     in-target pip3 install debai; \\
     in-target systemctl enable docker; \\
     in-target debai init

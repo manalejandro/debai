@@ -49,8 +49,26 @@ sudo apt-get install -f
 git clone https://github.com/manalejandro/debai.git
 cd debai
 
-# Install dependencies
-sudo apt install python3-pip python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 docker.io
+# Install Docker from official repository
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+# Install Docker Engine
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Install other dependencies
+sudo apt install python3-pip python3-gi gir1.2-gtk-4.0 gir1.2-adw-1
 
 # Install Debai
 pip install -e .
@@ -261,7 +279,7 @@ User-specific configuration: `~/.config/debai/config.yaml`
 
 - **Required**: python3, python3-pip, python3-gi
 - **For GUI**: gir1.2-gtk-4.0, gir1.2-adw-1
-- **For Models**: docker.io
+- **For Models**: docker-ce (from official Docker repository)
 - **For Images**: qemu-utils, genisoimage
 
 ## Building from Source
@@ -319,6 +337,7 @@ Debai is released under the [GNU General Public License v3.0](LICENSE).
 
 ## Acknowledgments
 
+- [Docker Engine](https://docs.docker.com/engine/) - Container runtime for AI models
 - [Docker Model Runner](https://docs.docker.com/model-runner/) - Local AI model inference
 - [cagent](https://github.com/cagent/cagent) - Agent framework
 - [GTK4](https://gtk.org) - GUI toolkit

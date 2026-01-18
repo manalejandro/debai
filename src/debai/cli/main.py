@@ -871,8 +871,18 @@ def init(ctx: click.Context, full: bool) -> None:
     missing = [d for d, available in deps.items() if not available]
     if missing:
         console.print(f"[yellow]⚠ Missing dependencies: {', '.join(missing)}[/yellow]")
-        console.print("\nInstall with your package manager:")
-        console.print("  [dim]sudo apt install docker.io qemu-utils genisoimage[/dim]")
+        console.print("\nInstall Docker Engine from official repository:")
+        console.print("  [dim]# Add Docker's official GPG key[/dim]")
+        console.print("  [dim]sudo apt-get update[/dim]")
+        console.print("  [dim]sudo apt-get install ca-certificates curl[/dim]")
+        console.print("  [dim]sudo install -m 0755 -d /etc/apt/keyrings[/dim]")
+        console.print("  [dim]sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc[/dim]")
+        console.print("  [dim]sudo chmod a+r /etc/apt/keyrings/docker.asc[/dim]")
+        console.print("\n  [dim]# Add Docker repository[/dim]")
+        console.print("  [dim]echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null[/dim]")
+        console.print("\n  [dim]# Install Docker Engine and tools[/dim]")
+        console.print("  [dim]sudo apt-get update[/dim]")
+        console.print("  [dim]sudo apt-get install docker-ce docker-ce-cli containerd.io qemu-utils genisoimage[/dim]")
     else:
         console.print("  [green]✓[/green] All dependencies available")
     

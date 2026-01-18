@@ -14,8 +14,9 @@ command -v dpkg-buildpackage >/dev/null 2>&1 || {
 
 # Clean previous builds
 echo "Cleaning previous builds..."
-rm -rf debian/debai debian/.debhelper debian/tmp
-rm -f debian/files debian/debai.substvars
+sudo rm -rf debian/debai debian/debai-doc debian/.debhelper debian/tmp debian/python3-debai
+sudo rm -rf .pybuild build dist src/*.egg-info
+rm -f debian/files debian/debai.substvars debian/debai-doc.substvars
 rm -f ../debai_*.deb ../debai_*.buildinfo ../debai_*.changes
 
 # Build the package
