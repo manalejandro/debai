@@ -167,8 +167,8 @@ class DebaiApplication(Adw.Application):
             version=__version__,
             copyright="© 2025 Debai Team",
             license_type=Gtk.License.GPL_3_0,
-            website="https://github.com/debai/debai",
-            issue_url="https://github.com/debai/debai/issues",
+            website="https://github.com/manalejandro/debai",
+            issue_url="https://github.com/manalejandro/debai/issues",
             comments="AI Agent Management System for GNU/Linux",
             developers=["Debai Team"],
         )

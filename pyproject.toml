@@ -70,10 +70,10 @@ debai = "debai.cli:main"
 debai-gui = "debai.gui:main"
 
 [project.urls]
-Homepage = "https://github.com/debai/debai"
+Homepage = "https://github.com/manalejandro/debai"
 Documentation = "https://debai.readthedocs.io"
-Repository = "https://github.com/debai/debai.git"
-Issues = "https://github.com/debai/debai/issues"
+Repository = "https://github.com/manalejandro/debai.git"
+"Bug Tracker" = "https://github.com/manalejandro/debai/issues"
 Changelog = "https://github.com/debai/debai/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]

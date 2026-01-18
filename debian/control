@@ -9,9 +9,9 @@ Build-Depends: debhelper-compat (= 13),
                python3-pip,
                python3-venv
 Standards-Version: 4.6.2
-Homepage: https://github.com/debai/debai
-Vcs-Git: https://github.com/debai/debai.git
-Vcs-Browser: https://github.com/debai/debai
+Homepage: https://github.com/manalejandro/debai
+Vcs-Git: https://github.com/manalejandro/debai.git
+Vcs-Browser: https://github.com/manalejandro/debai
 Rules-Requires-Root: no
 
 Package: debai

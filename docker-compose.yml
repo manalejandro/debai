@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # Debai Core Service
+  debai-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: debai/core:latest
+    container_name: debai-core
+    restart: unless-stopped
+    environment:
+      - DEBAI_CONFIG_DIR=/etc/debai
+      - DEBAI_DATA_DIR=/var/lib/debai
+      - DEBAI_LOG_LEVEL=${DEBAI_LOG_LEVEL:-info}
+      - DEBAI_API_HOST=0.0.0.0
+      - DEBAI_API_PORT=8000
+    volumes:
+      - debai-config:/etc/debai
+      - debai-data:/var/lib/debai
+      - debai-logs:/var/log/debai
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - debai-network
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Docker Model Runner (Ollama)
+  debai-models:
+    image: ollama/ollama:latest
+    container_name: debai-models
+    restart: unless-stopped
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    volumes:
+      - debai-models:/root/.ollama
+    networks:
+      - debai-network
+    ports:
+      - "11434:11434"
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    # Uncomment for GPU support (NVIDIA)
+    # runtime: nvidia
+    # environment:
+    #   - NVIDIA_VISIBLE_DEVICES=all
+
+  # Web GUI (Optional)
+  debai-gui:
+    build:
+      context: .
+      dockerfile: Dockerfile.gui
+    image: debai/gui:latest
+    container_name: debai-gui
+    restart: unless-stopped
+    depends_on:
+      - debai-core
+    environment:
+      - DEBAI_API_URL=http://debai-core:8000
+    networks:
+      - debai-network
+    ports:
+      - "8080:8080"
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: debai-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - debai-network
+    ports:
+      - "9090:9090"
+
+  # Grafana (Dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: debai-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-debai}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - debai-network
+    ports:
+      - "3000:3000"
+
+  # Redis (Optional - for caching and task queue)
+  redis:
+    image: redis:7-alpine
+    container_name: debai-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - debai-network
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  debai-config:
+    driver: local
+  debai-data:
+    driver: local
+  debai-logs:
+    driver: local
+  debai-models:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  debai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

@@ -32,7 +32,7 @@ class QCOW2Generator:
         output_path: Path,
         disk_size: str = "20G",
         base_distro: str = "debian",
-        release: str = "bookworm",
+        release: str = "trixie",
         arch: str = "amd64",
         memory_mb: int = 2048,
         cpus: int = 2,

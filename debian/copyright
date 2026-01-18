@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: debai
 Upstream-Contact: Debai Team <debai@example.com>
-Source: https://github.com/debai/debai
+Source: https://github.com/manalejandro/debai
 
 Files: *
 Copyright: 2025-2026 Debai Team

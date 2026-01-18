@@ -1,0 +1,201 @@
+FROM node:20-slim
+
+LABEL maintainer="Debai Team <debai@example.com>"
+LABEL description="Debai Web GUI"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -m -s /bin/bash debai
+
+WORKDIR /app
+
+# Copy Python backend
+COPY --chown=debai:debai pyproject.toml README.md ./
+COPY --chown=debai:debai src/ ./src/
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir --break-system-packages -e .
+
+# Create web GUI directory
+RUN mkdir -p /app/web && chown -R debai:debai /app/web
+
+# Simple web server for GUI
+COPY --chown=debai:debai <<'EOF' /app/web/server.js
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const PORT = 8080;
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/' || req.url === '/index.html') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debai - AI Agent Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .status {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e0e7ff;
+        }
+        .status-item:last-child { border-bottom: none; }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 0.5rem;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .info {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Debai</h1>
+        <p class="subtitle">AI Agent Management System</p>
+        
+        <div class="status">
+            <h3 style="margin-bottom: 1rem;">System Status</h3>
+            <div class="status-item">
+                <span><strong>API Status:</strong></span>
+                <span id="api-status">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span><strong>Models Service:</strong></span>
+                <span id="models-status">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span><strong>Version:</strong></span>
+                <span>1.0.0</span>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>ℹ️ Note:</strong> This is a placeholder web interface. 
+            Use the GTK GUI application for full functionality or access the API directly.
+        </div>
+
+        <div>
+            <a href="http://localhost:8000/docs" class="btn" target="_blank">📚 API Docs</a>
+            <a href="http://localhost:9090" class="btn" target="_blank">📊 Metrics</a>
+            <a href="http://localhost:3000" class="btn" target="_blank">📈 Grafana</a>
+        </div>
+
+        <p style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
+            For full GUI functionality, install the GTK application:<br>
+            <code style="background: #f3f4f6; padding: 0.5rem; border-radius: 5px; display: inline-block; margin-top: 0.5rem;">
+                debai-gui
+            </code>
+        </p>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            try {
+                const apiResponse = await fetch('http://localhost:8000/health');
+                document.getElementById('api-status').innerHTML = 
+                    apiResponse.ok ? '✅ Running' : '❌ Down';
+            } catch {
+                document.getElementById('api-status').innerHTML = '❌ Unreachable';
+            }
+
+            try {
+                const modelsResponse = await fetch('http://localhost:11434/api/tags');
+                document.getElementById('models-status').innerHTML = 
+                    modelsResponse.ok ? '✅ Running' : '❌ Down';
+            } catch {
+                document.getElementById('models-status').innerHTML = '❌ Unreachable';
+            }
+        }
+
+        checkStatus();
+        setInterval(checkStatus, 30000);
+    </script>
+</body>
+</html>
+    `);
+  } else if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok' }));
+  } else {
+    res.writeHead(404);
+    res.end('Not Found');
+  }
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(\`Web GUI running on http://0.0.0.0:\${PORT}\`);
+});
+EOF
+
+USER debai
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["node", "/app/web/server.js"]

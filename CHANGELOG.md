@@ -82,5 +82,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Permission-based capabilities for agents
 - Confirmation required for destructive operations
 
-[Unreleased]: https://github.com/debai/debai/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/debai/debai/releases/tag/v1.0.0
+[Unreleased]: https://github.com/manalejandro/debai/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/manalejandro/debai/releases/tag/v1.0.0

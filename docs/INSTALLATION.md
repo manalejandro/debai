@@ -6,7 +6,7 @@ This guide provides detailed instructions for installing Debai on your GNU/Linux
 
 ### System Requirements
 
-- **Operating System**: Debian 12 (Bookworm) or newer, Ubuntu 22.04 or newer, or compatible
+- **Operating System**: Debian 13 (Trixie) or newer, Ubuntu 24.04 or newer, or compatible
 - **Python**: 3.10 or later
 - **RAM**: 4GB minimum, 8GB recommended
 - **Disk**: 10GB free space (more for AI models)
@@ -44,7 +44,7 @@ Download and install the `.deb` package:
 
 ```bash
 # Download the latest release
-wget https://github.com/debai/debai/releases/latest/download/debai_1.0.0-1_all.deb
+wget https://github.com/manalejandro/debai/releases/latest/download/debai_1.0.0-1_all.deb
 
 # Install
 sudo dpkg -i debai_1.0.0-1_all.deb
@@ -85,7 +85,7 @@ pip install -e ".[gui,dev,docs]"
 
 ```bash
 # Clone the repository
-git clone https://github.com/debai/debai.git
+git clone https://github.com/manalejandro/debai.git
 cd debai
 
 # Install build dependencies
@@ -225,7 +225,7 @@ pip install -r requirements.txt
 
 ```bash
 # Download new version
-wget https://github.com/debai/debai/releases/latest/download/debai_1.0.0-1_all.deb
+wget https://github.com/manalejandro/debai/releases/latest/download/debai_1.0.0-1_all.deb
 
 # Upgrade
 sudo dpkg -i debai_1.0.0-1_all.deb
@@ -287,5 +287,5 @@ After installation:
 ## Getting Help
 
 - 📚 [Documentation](https://debai.readthedocs.io)
-- 🐛 [Issue Tracker](https://github.com/debai/debai/issues)
-- 💬 [Discussions](https://github.com/debai/debai/discussions)
+- 🐛 [Issue Tracker](https://github.com/manalejandro/debai/issues)
+- 💬 [Discussions](https://github.com/manalejandro/debai/discussions)

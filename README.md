@@ -35,7 +35,7 @@ Debai is a comprehensive application for generating and managing AI agents that 
 
 ```bash
 # Download the latest release
-wget https://github.com/debai/debai/releases/latest/download/debai_1.0.0-1_all.deb
+wget https://github.com/manalejandro/debai/releases/latest/download/debai_1.0.0-1_all.deb
 
 # Install
 sudo dpkg -i debai_1.0.0-1_all.deb
@@ -46,7 +46,7 @@ sudo apt-get install -f
 
 ```bash
 # Clone the repository
-git clone https://github.com/debai/debai.git
+git clone https://github.com/manalejandro/debai.git
 cd debai
 
 # Install dependencies
@@ -328,8 +328,8 @@ Debai is released under the [GNU General Public License v3.0](LICENSE).
 ## Support
 
 - 📚 [Documentation](https://debai.readthedocs.io)
-- 🐛 [Issue Tracker](https://github.com/debai/debai/issues)
-- 💬 [Discussions](https://github.com/debai/debai/discussions)
+- 🐛 [Issue Tracker](https://github.com/manalejandro/debai/issues)
+- 💬 [Discussions](https://github.com/manalejandro/debai/discussions)
 
 ---
 

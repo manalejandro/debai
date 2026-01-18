@@ -32,7 +32,7 @@ class ISOGenerator:
         self,
         output_path: Path,
         base_distro: str = "debian",
-        release: str = "bookworm",
+        release: str = "trixie",
         arch: str = "amd64",
         include_agents: bool = True,
         include_gui: bool = True,
