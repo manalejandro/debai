@@ -1,0 +1,120 @@
+name: Build and Release .deb Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            debhelper \
+            dh-python \
+            python3-all \
+            python3-setuptools \
+            python3-pip \
+            python3-click \
+            python3-rich \
+            python3-yaml \
+            python3-jinja2 \
+            python3-pydantic \
+            python3-aiohttp \
+            python3-docker \
+            python3-psutil \
+            python3-gi
+      
+      - name: Build .deb package
+        run: |
+          # Clean previous builds
+          sudo rm -rf debian/debai debian/debai-doc debian/.debhelper debian/tmp debian/python3-debai
+          sudo rm -rf .pybuild build dist src/*.egg-info
+          rm -f debian/files debian/debai.substvars debian/debai-doc.substvars
+          
+          # Build package
+          dpkg-buildpackage -us -uc -b
+          
+          # Move the .deb file to current directory for easier access
+          mv ../debai_*.deb ./ || true
+      
+      - name: Get package info
+        id: package_info
+        run: |
+          DEB_FILE=$(ls debai_*.deb 2>/dev/null | head -n 1)
+          if [ -z "$DEB_FILE" ]; then
+            echo "Error: No .deb file found"
+            exit 1
+          fi
+          echo "deb_file=$DEB_FILE" >> $GITHUB_OUTPUT
+          echo "deb_name=$(basename $DEB_FILE)" >> $GITHUB_OUTPUT
+          
+          # Get version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## Debai Release ${{ steps.package_info.outputs.version }}
+            
+            ### Installation
+            
+            Download the `.deb` package and install it:
+            
+            ```bash
+            sudo dpkg -i ${{ steps.package_info.outputs.deb_name }}
+            sudo apt-get install -f
+            ```
+            
+            ### What's Changed
+            
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+      
+      - name: Upload .deb package to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.package_info.outputs.deb_file }}
+          asset_name: ${{ steps.package_info.outputs.deb_name }}
+          asset_content_type: application/vnd.debian.binary-package
+      
+      - name: Upload checksums
+        run: |
+          sha256sum ${{ steps.package_info.outputs.deb_file }} > ${{ steps.package_info.outputs.deb_file }}.sha256
+          
+      - name: Upload checksum to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.package_info.outputs.deb_file }}.sha256
+          asset_name: ${{ steps.package_info.outputs.deb_name }}.sha256
+          asset_content_type: text/plain
