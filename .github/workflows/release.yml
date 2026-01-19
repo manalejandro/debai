@@ -39,7 +39,9 @@ jobs:
             python3-aiohttp \
             python3-docker \
             python3-psutil \
-            python3-gi
+            python3-gi \
+            python3-build \
+            pybuild-plugin-pyproject
       
       - name: Build .deb package
         run: |
