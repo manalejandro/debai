@@ -568,14 +568,39 @@ def check_dependencies() -> dict[str, bool]:
         "genisoimage": False,
     }
     
+    # Common binary locations
+    search_paths = [
+        Path.home() / ".local" / "bin",
+        Path("/usr/local/bin"),
+        Path("/usr/bin"),
+        Path("/bin"),
+        Path("/usr/libexec/docker/cli-plugins"),
+    ]
+    
+    # Also add PATH entries
+    path_env = os.environ.get("PATH", "")
+    for path_entry in path_env.split(":"):
+        if path_entry:
+            search_paths.append(Path(path_entry))
+    
     for dep in deps:
+        # Try which first
         try:
             result = subprocess.run(
                 ["which", dep],
                 capture_output=True,
             )
-            deps[dep] = result.returncode == 0
+            if result.returncode == 0:
+                deps[dep] = True
+                continue
         except Exception:
             pass
+        
+        # Manual search in common locations
+        for search_path in search_paths:
+            binary_path = search_path / dep
+            if binary_path.exists() and os.access(binary_path, os.X_OK):
+                deps[dep] = True
+                break
     
     return deps

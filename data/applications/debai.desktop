@@ -2,7 +2,7 @@
 Name=Debai
 GenericName=AI Agent Manager
 Comment=Manage AI agents for system automation
-Exec=debai-gui
+Exec=bash -c 'export PATH="$HOME/.local/bin:/usr/local/bin:/usr/libexec/docker/cli-plugins:$PATH"; debai-gui'
 Icon=debai
 Terminal=false
 Type=Application
@@ -14,8 +14,8 @@ Actions=new-agent;status;
 
 [Desktop Action new-agent]
 Name=Create New Agent
-Exec=debai-gui --action=new-agent
+Exec=bash -c 'export PATH="$HOME/.local/bin:/usr/local/bin:/usr/libexec/docker/cli-plugins:$PATH"; debai-gui --action=new-agent'
 
 [Desktop Action status]
 Name=Show Status
-Exec=debai status
+Exec=bash -c 'export PATH="$HOME/.local/bin:/usr/local/bin:/usr/libexec/docker/cli-plugins:$PATH"; debai status'

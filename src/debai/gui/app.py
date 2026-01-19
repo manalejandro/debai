@@ -208,6 +208,7 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         self.set_title("Debai")
         self.set_default_size(1400, 900)
+        self.set_icon_name("debai")
         
         # Main layout
         self._build_ui()
@@ -345,10 +346,10 @@ class DebaiWindow(Adw.ApplicationWindow):
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        page.set_margin_start(24)
-        page.set_margin_end(24)
-        page.set_margin_top(24)
-        page.set_margin_bottom(24)
+        page.set_margin_start(12)
+        page.set_margin_end(12)
+        page.set_margin_top(12)
+        page.set_margin_bottom(12)
         scrolled.set_child(page)
         
         # Welcome section
@@ -465,10 +466,10 @@ class DebaiWindow(Adw.ApplicationWindow):
         """Create a metric card widget."""
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         card.add_css_class("card")
-        card.set_margin_top(16)
-        card.set_margin_bottom(16)
-        card.set_margin_start(16)
-        card.set_margin_end(16)
+        card.set_margin_top(12)
+        card.set_margin_bottom(12)
+        card.set_margin_start(12)
+        card.set_margin_end(12)
         
         icon_widget = Gtk.Image.new_from_icon_name(icon)
         icon_widget.set_pixel_size(32)
@@ -494,9 +495,9 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         # Toolbar
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        toolbar.set_margin_start(16)
-        toolbar.set_margin_end(16)
-        toolbar.set_margin_top(16)
+        toolbar.set_margin_start(12)
+        toolbar.set_margin_end(12)
+        toolbar.set_margin_top(12)
         toolbar.set_margin_bottom(8)
         
         title = Gtk.Label(label="AI Agents")
@@ -527,9 +528,9 @@ class DebaiWindow(Adw.ApplicationWindow):
         self.agents_list = Gtk.ListBox()
         self.agents_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.agents_list.add_css_class("boxed-list")
-        self.agents_list.set_margin_start(16)
-        self.agents_list.set_margin_end(16)
-        self.agents_list.set_margin_bottom(16)
+        self.agents_list.set_margin_start(12)
+        self.agents_list.set_margin_end(12)
+        self.agents_list.set_margin_bottom(12)
         
         scrolled.set_child(self.agents_list)
         page.append(scrolled)
@@ -598,18 +599,24 @@ class DebaiWindow(Adw.ApplicationWindow):
             stop_btn.set_tooltip_text("Stop agent")
             stop_btn.set_valign(Gtk.Align.CENTER)
             stop_btn.add_css_class("flat")
+            stop_btn.agent_id = agent.id
+            stop_btn.connect("clicked", self._on_stop_agent)
             row.add_suffix(stop_btn)
             
             chat_btn = Gtk.Button.new_from_icon_name("user-available-symbolic")
             chat_btn.set_tooltip_text("Chat with agent")
             chat_btn.set_valign(Gtk.Align.CENTER)
             chat_btn.add_css_class("flat")
+            chat_btn.agent_id = agent.id
+            chat_btn.connect("clicked", self._on_chat_agent)
             row.add_suffix(chat_btn)
         else:
             start_btn = Gtk.Button.new_from_icon_name("media-playback-start-symbolic")
             start_btn.set_tooltip_text("Start agent")
             start_btn.set_valign(Gtk.Align.CENTER)
             start_btn.add_css_class("flat")
+            start_btn.agent_id = agent.id
+            start_btn.connect("clicked", self._on_start_agent)
             row.add_suffix(start_btn)
         
         delete_btn = Gtk.Button.new_from_icon_name("user-trash-symbolic")
@@ -617,6 +624,8 @@ class DebaiWindow(Adw.ApplicationWindow):
         delete_btn.set_valign(Gtk.Align.CENTER)
         delete_btn.add_css_class("flat")
         delete_btn.add_css_class("error")
+        delete_btn.agent_id = agent.id
+        delete_btn.connect("clicked", self._on_delete_agent)
         row.add_suffix(delete_btn)
         
         return row
@@ -629,9 +638,9 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         # Toolbar
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        toolbar.set_margin_start(16)
-        toolbar.set_margin_end(16)
-        toolbar.set_margin_top(16)
+        toolbar.set_margin_start(12)
+        toolbar.set_margin_end(12)
+        toolbar.set_margin_top(12)
         toolbar.set_margin_bottom(8)
         
         title = Gtk.Label(label="AI Models")
@@ -656,9 +665,9 @@ class DebaiWindow(Adw.ApplicationWindow):
         self.models_list = Gtk.ListBox()
         self.models_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.models_list.add_css_class("boxed-list")
-        self.models_list.set_margin_start(16)
-        self.models_list.set_margin_end(16)
-        self.models_list.set_margin_bottom(16)
+        self.models_list.set_margin_start(12)
+        self.models_list.set_margin_end(12)
+        self.models_list.set_margin_bottom(12)
         
         scrolled.set_child(self.models_list)
         page.append(scrolled)
@@ -692,9 +701,9 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         # Toolbar
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        toolbar.set_margin_start(16)
-        toolbar.set_margin_end(16)
-        toolbar.set_margin_top(16)
+        toolbar.set_margin_start(12)
+        toolbar.set_margin_end(12)
+        toolbar.set_margin_top(12)
         toolbar.set_margin_bottom(8)
         
         title = Gtk.Label(label="Automated Tasks")
@@ -720,9 +729,9 @@ class DebaiWindow(Adw.ApplicationWindow):
         tasks_list = Gtk.ListBox()
         tasks_list.set_selection_mode(Gtk.SelectionMode.NONE)
         tasks_list.add_css_class("boxed-list")
-        tasks_list.set_margin_start(16)
-        tasks_list.set_margin_end(16)
-        tasks_list.set_margin_bottom(16)
+        tasks_list.set_margin_start(12)
+        tasks_list.set_margin_end(12)
+        tasks_list.set_margin_bottom(12)
         
         # Add sample tasks
         from debai.core.task import list_task_templates, get_task_template
@@ -741,6 +750,8 @@ class DebaiWindow(Adw.ApplicationWindow):
                 run_btn = Gtk.Button(label="Run")
                 run_btn.set_valign(Gtk.Align.CENTER)
                 run_btn.add_css_class("pill")
+                run_btn.task_name = name
+                run_btn.connect("clicked", self._on_run_task)
                 row.add_suffix(run_btn)
                 
                 tasks_list.append(row)
@@ -758,10 +769,10 @@ class DebaiWindow(Adw.ApplicationWindow):
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
-        page.set_margin_start(24)
-        page.set_margin_end(24)
-        page.set_margin_top(24)
-        page.set_margin_bottom(24)
+        page.set_margin_start(12)
+        page.set_margin_end(12)
+        page.set_margin_top(12)
+        page.set_margin_bottom(12)
         scrolled.set_child(page)
         
         title = Gtk.Label(label="Generate Distribution")
@@ -788,6 +799,7 @@ class DebaiWindow(Adw.ApplicationWindow):
         iso_btn = Gtk.Button(label="Generate")
         iso_btn.set_valign(Gtk.Align.CENTER)
         iso_btn.add_css_class("pill")
+        iso_btn.connect("clicked", lambda b: self._on_generate_iso())
         iso_row.add_suffix(iso_btn)
         options_group.add(iso_row)
         
@@ -800,6 +812,7 @@ class DebaiWindow(Adw.ApplicationWindow):
         qcow2_btn = Gtk.Button(label="Generate")
         qcow2_btn.set_valign(Gtk.Align.CENTER)
         qcow2_btn.add_css_class("pill")
+        qcow2_btn.connect("clicked", lambda b: self._on_generate_qcow2())
         qcow2_row.add_suffix(qcow2_btn)
         options_group.add(qcow2_row)
         
@@ -812,6 +825,7 @@ class DebaiWindow(Adw.ApplicationWindow):
         compose_btn = Gtk.Button(label="Generate")
         compose_btn.set_valign(Gtk.Align.CENTER)
         compose_btn.add_css_class("pill")
+        compose_btn.connect("clicked", lambda b: self._on_generate_compose())
         compose_row.add_suffix(compose_btn)
         options_group.add(compose_row)
         
@@ -841,9 +855,230 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         GLib.timeout_add_seconds(2, update_metrics)
     
+    def _on_run_task(self, button):
+        """Run a task."""
+        task_name = button.task_name
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Run Task",
+            body=f"Running task: {task_name}\n\nThis will execute the task in the background.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("run", "Run")
+        dialog.set_response_appearance("run", Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect("response", lambda d, r: self._execute_task(task_name) if r == "run" else None)
+        dialog.present()
+    
+    def _execute_task(self, task_name):
+        """Execute a task."""
+        import subprocess
+        try:
+            subprocess.Popen(["debai", "task", "run", task_name])
+            success = Adw.MessageDialog(
+                transient_for=self,
+                heading="Task Started",
+                body=f"Task '{task_name}' is now running in the background.",
+            )
+            success.add_response("ok", "OK")
+            success.present()
+        except Exception as e:
+            error = Adw.MessageDialog(
+                transient_for=self,
+                heading="Error",
+                body=f"Failed to run task: {str(e)}",
+            )
+            error.add_response("ok", "OK")
+            error.present()
+    
+    def _on_generate_iso(self):
+        """Generate ISO distribution."""
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Generate ISO",
+            body="This will generate a bootable ISO image with your configured agents.\n\nThis may take several minutes.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("generate", "Generate")
+        dialog.set_response_appearance("generate", Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect("response", lambda d, r: self._execute_generator("iso") if r == "generate" else None)
+        dialog.present()
+    
+    def _on_generate_qcow2(self):
+        """Generate QCOW2 image."""
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Generate QCOW2",
+            body="This will generate a QCOW2 disk image for virtual machines.\n\nThis may take several minutes.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("generate", "Generate")
+        dialog.set_response_appearance("generate", Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect("response", lambda d, r: self._execute_generator("qcow2") if r == "generate" else None)
+        dialog.present()
+    
+    def _on_generate_compose(self):
+        """Generate Docker Compose configuration."""
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Generate Docker Compose",
+            body="This will generate a docker-compose.yml configuration for your agents.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("generate", "Generate")
+        dialog.set_response_appearance("generate", Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect("response", lambda d, r: self._execute_generator("compose") if r == "generate" else None)
+        dialog.present()
+    
+    def _execute_generator(self, gen_type):
+        """Execute a generator."""
+        import subprocess
+        try:
+            subprocess.Popen(["debai", "generate", gen_type, "-o", f"/tmp/debai-{gen_type}"])
+            success = Adw.MessageDialog(
+                transient_for=self,
+                heading="Generation Started",
+                body=f"Generating {gen_type} in the background...\n\nOutput will be saved to /tmp/debai-{gen_type}",
+            )
+            success.add_response("ok", "OK")
+            success.present()
+        except Exception as e:
+            error = Adw.MessageDialog(
+                transient_for=self,
+                heading="Error",
+                body=f"Failed to generate {gen_type}: {str(e)}",
+            )
+            error.add_response("ok", "OK")
+            error.present()
+    
+    def _on_start_agent(self, button):
+        """Start an agent."""
+        agent_id = button.agent_id
+        
+        def start_async():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                app = self.get_application()
+                success = loop.run_until_complete(app.agent_manager.start_agent(agent_id))
+                if success:
+                    GLib.idle_add(self._show_agent_started, agent_id)
+                else:
+                    GLib.idle_add(self._show_agent_error, "Failed to start agent")
+            except Exception as e:
+                GLib.idle_add(self._show_agent_error, str(e))
+            finally:
+                loop.close()
+        
+        import threading
+        thread = threading.Thread(target=start_async, daemon=True)
+        thread.start()
+    
+    def _on_stop_agent(self, button):
+        """Stop an agent."""
+        agent_id = button.agent_id
+        
+        def stop_async():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                app = self.get_application()
+                success = loop.run_until_complete(app.agent_manager.stop_agent(agent_id))
+                if success:
+                    GLib.idle_add(self._show_agent_stopped, agent_id)
+                else:
+                    GLib.idle_add(self._show_agent_error, "Failed to stop agent")
+            except Exception as e:
+                GLib.idle_add(self._show_agent_error, str(e))
+            finally:
+                loop.close()
+        
+        import threading
+        thread = threading.Thread(target=stop_async, daemon=True)
+        thread.start()
+    
+    def _on_delete_agent(self, button):
+        """Delete an agent."""
+        agent_id = button.agent_id
+        app = self.get_application()
+        agent = app.agent_manager.get_agent(agent_id)
+        
+        if not agent:
+            return
+        
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Delete Agent",
+            body=f"Are you sure you want to delete '{agent.name}'?\n\nThis action cannot be undone.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("delete", "Delete")
+        dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.connect("response", lambda d, r: self._confirm_delete_agent(agent_id) if r == "delete" else None)
+        dialog.present()
+    
+    def _confirm_delete_agent(self, agent_id):
+        """Confirm and delete agent."""
+        def delete_async():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                app = self.get_application()
+                success = loop.run_until_complete(app.agent_manager.delete_agent(agent_id))
+                if success:
+                    GLib.idle_add(self._show_agent_deleted, agent_id)
+                else:
+                    GLib.idle_add(self._show_agent_error, "Failed to delete agent")
+            except Exception as e:
+                GLib.idle_add(self._show_agent_error, str(e))
+            finally:
+                loop.close()
+        
+        import threading
+        thread = threading.Thread(target=delete_async, daemon=True)
+        thread.start()
+    
+    def _on_chat_agent(self, button):
+        """Open chat with agent."""
+        agent_id = button.agent_id
+        # TODO: Implement chat interface
+        dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Chat",
+            body="Chat interface coming soon!",
+        )
+        dialog.add_response("ok", "OK")
+        dialog.present()
+    
+    def _show_agent_started(self, agent_id):
+        """Show agent started notification and refresh."""
+        self._refresh_agents()
+        toast = Adw.Toast(title="Agent started")
+        # Note: Toast would need an overlay in the window to display
+    
+    def _show_agent_stopped(self, agent_id):
+        """Show agent stopped notification and refresh."""
+        self._refresh_agents()
+        toast = Adw.Toast(title="Agent stopped")
+    
+    def _show_agent_deleted(self, agent_id):
+        """Show agent deleted notification and refresh."""
+        self._refresh_agents()
+        toast = Adw.Toast(title="Agent deleted")
+    
+    def _show_agent_error(self, error_msg):
+        """Show agent error dialog."""
+        error = Adw.MessageDialog(
+            transient_for=self,
+            heading="Error",
+            body=error_msg,
+        )
+        error.add_response("ok", "OK")
+        error.present()
+    
     def show_new_agent_dialog(self):
         """Show dialog to create a new agent."""
-        dialog = NewAgentDialog(transient_for=self)
+        app = self.get_application()
+        dialog = NewAgentDialog(transient_for=self, agent_manager=app.agent_manager)
         dialog.present()
     
     def show_new_task_dialog(self):
@@ -860,9 +1095,10 @@ class DebaiWindow(Adw.ApplicationWindow):
 class NewAgentDialog(Adw.Window):
     """Dialog for creating a new agent."""
     
-    def __init__(self, **kwargs):
+    def __init__(self, agent_manager: AgentManager, **kwargs):
         super().__init__(**kwargs)
         
+        self.agent_manager = agent_manager
         self.set_title("Create Agent")
         self.set_default_size(500, 600)
         self.set_modal(True)
@@ -986,8 +1222,80 @@ class NewAgentDialog(Adw.Window):
     
     def _on_create(self, button):
         """Create the agent."""
-        # TODO: Implement agent creation
+        name = self.name_entry.get_text()
+        description = self.desc_entry.get_text()
+        
+        if not name:
+            dialog = Adw.MessageDialog(
+                transient_for=self,
+                heading="Error",
+                body="Agent name is required",
+            )
+            dialog.add_response("ok", "OK")
+            dialog.present()
+            return
+        
+        # Get selected type
+        type_idx = self.type_combo.get_selected()
+        agent_types = list(AgentType)
+        agent_type = agent_types[type_idx] if type_idx < len(agent_types) else AgentType.CUSTOM
+        
+        # Get selected model
+        model_idx = self.model_combo.get_selected()
+        models = [get_recommended_model(n).id for n in list_recommended_models() if get_recommended_model(n)]
+        model_id = models[model_idx] if model_idx < len(models) else models[0] if models else "llama3.2:3b"
+        
+        # Create agent config
+        config = AgentConfig(
+            name=name,
+            description=description,
+            agent_type=agent_type,
+            model_id=model_id,
+            interactive=self.interactive_switch.get_active(),
+            auto_start=self.autostart_switch.get_active(),
+        )
+        
+        # Save the agent
+        try:
+            # Run async create_agent in a separate thread
+            def create_async():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(self.agent_manager.create_agent(config))
+                    GLib.idle_add(self._show_success, name)
+                except Exception as e:
+                    GLib.idle_add(self._show_error, str(e))
+                finally:
+                    loop.close()
+            
+            import threading
+            thread = threading.Thread(target=create_async, daemon=True)
+            thread.start()
+            
+        except Exception as e:
+            self._show_error(str(e))
+    
+    def _show_success(self, name):
+        """Show success dialog."""
+        success_dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Success",
+            body=f"Agent '{name}' created successfully",
+        )
+        success_dialog.add_response("ok", "OK")
+        success_dialog.present()
         self.close()
+    
+    def _show_error(self, error_msg):
+        """Show error dialog."""
+        error_dialog = Adw.MessageDialog(
+            transient_for=self,
+            heading="Error",
+            body=f"Failed to create agent: {error_msg}",
+        )
+        error_dialog.add_response("ok", "OK")
+        error_dialog.present()
 
 
 class NewTaskDialog(Adw.Window):
@@ -1016,6 +1324,7 @@ class NewTaskDialog(Adw.Window):
         
         create_btn = Gtk.Button(label="Create")
         create_btn.add_css_class("suggested-action")
+        create_btn.connect("clicked", lambda b: self.close())  # TODO: Implement task creation
         header.pack_end(create_btn)
         
         box.append(header)
@@ -1031,11 +1340,11 @@ class NewTaskDialog(Adw.Window):
         # Basic info
         basic_group = Adw.PreferencesGroup(title="Task Information")
         
-        name_entry = Adw.EntryRow(title="Name")
-        basic_group.add(name_entry)
+        self.name_entry = Adw.EntryRow(title="Name")
+        basic_group.add(self.name_entry)
         
-        command_entry = Adw.EntryRow(title="Command")
-        basic_group.add(command_entry)
+        self.command_entry = Adw.EntryRow(title="Command")
+        basic_group.add(self.command_entry)
         
         content.append(basic_group)
 
