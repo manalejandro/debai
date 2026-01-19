@@ -145,6 +145,44 @@ class Agent:
     def name(self) -> str:
         return self.config.name
     
+    def is_alive(self) -> bool:
+        """Check if the agent process is still running."""
+        # First check if we have a subprocess object
+        if self.process is not None:
+            return self.process.poll() is None
+        
+        # If no process object, search for cagent process with our config file
+        try:
+            import psutil
+            work_dir = Path(self.config.working_directory)
+            agent_config_path = work_dir / f"agent_{self.id}.yaml"
+            
+            # Search for cagent processes
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if proc.info['name'] == 'cagent' and proc.info['cmdline']:
+                        cmdline = ' '.join(proc.info['cmdline'])
+                        if str(agent_config_path) in cmdline:
+                            return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+        except ImportError:
+            # psutil not available, fall back to checking self.process only
+            pass
+        
+        return False
+    
+    def update_status(self) -> None:
+        """Update the agent status based on process state."""
+        if self.is_alive():
+            # Process is running, update status to RUNNING
+            if self.status in (AgentStatus.STOPPED, AgentStatus.ERROR, AgentStatus.STARTING):
+                self.status = AgentStatus.RUNNING
+        else:
+            # Process is not running, update status to STOPPED
+            if self.status == AgentStatus.RUNNING:
+                self.status = AgentStatus.STOPPED
+    
     def on(self, event: str, callback: Callable) -> None:
         """Register an event callback."""
         if event in self._callbacks:
@@ -177,13 +215,32 @@ class Agent:
                 agent_config_path = work_dir / f"agent_{self.id}.yaml"
                 self._write_cagent_config(agent_config_path)
                 
-                # Start cagent process
+                # Check if model is available, download if needed
+                # Get the model ID from the config we just wrote
+                with open(agent_config_path) as f:
+                    config_data = yaml.safe_load(f)
+                    model_id = config_data["agents"]["root"]["model"]
+                
+                if not self._check_model_available(model_id):
+                    logger.info(f"Model {model_id} not found locally, downloading...")
+                    if not self._pull_model(model_id):
+                        raise Exception(f"Failed to download model {model_id}")
+                
+                # Start cagent API server
+                # Use 'cagent api' to run agent as HTTP API service
+                # Each agent gets a unique port based on hash of agent ID
+                port = 8000 + (hash(self.id) % 1000)
+                
                 cmd = [
                     "cagent",
-                    "--config", str(agent_config_path),
-                    "--model", self.config.model_id,
-                    "--interactive" if self.config.interactive else "--daemon",
+                    "api",
+                    str(agent_config_path),
+                    "--listen", f":{port}",
                 ]
+                
+                # Log the command for debugging
+                logger.debug(f"Starting agent with command: {' '.join(cmd)}")
+                logger.info(f"Agent API will listen on port {port}")
                 
                 self.process = subprocess.Popen(
                     cmd,
@@ -193,6 +250,15 @@ class Agent:
                     cwd=str(work_dir),
                     env={**os.environ, **self.config.environment},
                 )
+                
+                # Give it a moment to start
+                await asyncio.sleep(0.5)
+                
+                # Check if process is still running
+                if self.process.poll() is not None:
+                    # Process died immediately
+                    stderr = self.process.stderr.read().decode() if self.process.stderr else ""
+                    raise Exception(f"Agent process exited immediately: {stderr}")
                 
                 self.status = AgentStatus.RUNNING
                 self._emit("on_start", self)
@@ -208,10 +274,14 @@ class Agent:
     async def stop(self) -> bool:
         """Stop the agent."""
         async with self._lock:
-            if self.status == AgentStatus.STOPPED:
+            # Update status first to check actual process state
+            self.update_status()
+            
+            if self.status == AgentStatus.STOPPED and not self.is_alive():
                 return True
             
             try:
+                # Try to stop via subprocess object first
                 if self.process:
                     self.process.terminate()
                     try:
@@ -219,6 +289,32 @@ class Agent:
                     except subprocess.TimeoutExpired:
                         self.process.kill()
                         self.process.wait()
+                else:
+                    # No subprocess object, find and kill the process using psutil
+                    try:
+                        import psutil
+                        work_dir = Path(self.config.working_directory)
+                        agent_config_path = work_dir / f"agent_{self.id}.yaml"
+                        
+                        # Search for cagent processes
+                        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                            try:
+                                if proc.info['name'] == 'cagent' and proc.info['cmdline']:
+                                    cmdline = ' '.join(proc.info['cmdline'])
+                                    if str(agent_config_path) in cmdline:
+                                        logger.info(f"Terminating cagent process PID {proc.info['pid']}")
+                                        proc.terminate()
+                                        try:
+                                            proc.wait(timeout=10)
+                                        except psutil.TimeoutExpired:
+                                            logger.warning(f"Process {proc.info['pid']} didn't terminate, killing")
+                                            proc.kill()
+                                            proc.wait()
+                                        break
+                            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                continue
+                    except ImportError:
+                        logger.warning("psutil not available, cannot stop agent without process object")
                 
                 self.status = AgentStatus.STOPPED
                 self._emit("on_stop", self)
@@ -237,25 +333,60 @@ class Agent:
             return None
         
         try:
+            import subprocess
+            import tempfile
+            
             # Record user message
             user_msg = AgentMessage(role="user", content=content)
             self.message_history.append(user_msg)
             
-            # Send to agent process
-            if self.process and self.process.stdin:
-                self.process.stdin.write(f"{content}\n".encode())
-                self.process.stdin.flush()
+            # Get the temporary agent config path
+            agent_config_path = Path(tempfile.gettempdir()) / "debai" / f"agent_{self.id}.yaml"
             
-            # Read response
-            if self.process and self.process.stdout:
-                response = self.process.stdout.readline().decode().strip()
-                assistant_msg = AgentMessage(role="assistant", content=response)
-                self.message_history.append(assistant_msg)
-                self._emit("on_message", self, assistant_msg)
-                return assistant_msg
+            if not agent_config_path.exists():
+                logger.error(f"Agent config file not found: {agent_config_path}")
+                return None
             
+            # Run cagent with the message
+            cmd = [
+                "cagent", "run", str(agent_config_path), content, 
+                "--tui=false"
+            ]
+            
+            # Execute cagent run command
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=str(agent_config_path.parent)
+            )
+            
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=120.0)
+            
+            if process.returncode == 0:
+                response_content = stdout.decode('utf-8').strip()
+                # Remove the "--- Agent: root ---" header if present
+                if response_content.startswith("--- Agent:"):
+                    lines = response_content.split('\n')
+                    if len(lines) > 1:
+                        response_content = '\n'.join(lines[1:]).strip()
+                
+                if response_content:
+                    assistant_msg = AgentMessage(role="assistant", content=response_content)
+                    self.message_history.append(assistant_msg)
+                    self._emit("on_message", self, assistant_msg)
+                    return assistant_msg
+                else:
+                    logger.error(f"Empty response from agent {self.name}")
+                    return None
+            else:
+                error_text = stderr.decode('utf-8')
+                logger.error(f"Agent {self.name} error: {error_text}")
+                return None
+            
+        except asyncio.TimeoutError:
+            logger.error(f"Timeout waiting for response from agent {self.name}")
             return None
-            
         except Exception as e:
             logger.error(f"Error sending message to agent {self.name}: {e}")
             return None
@@ -288,29 +419,71 @@ class Agent:
         result["duration_seconds"] = (datetime.now() - start_time).total_seconds()
         return result
     
+    def _check_model_available(self, model_name: str) -> bool:
+        """Check if a model is available locally in docker-model."""
+        try:
+            result = subprocess.run(
+                ["docker-model", "list"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                # Parse output and check if model exists
+                # Model name might be in format "dmr/model" or just "model"
+                check_name = model_name.replace("dmr/", "")
+                return check_name in result.stdout
+            return False
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            logger.warning("Could not check model availability (docker-model not found)")
+            return True  # Assume available if we can't check
+    
+    def _pull_model(self, model_name: str) -> bool:
+        """Pull a model using docker-model."""
+        try:
+            # Remove dmr/ prefix if present
+            pull_name = model_name.replace("dmr/", "")
+            logger.info(f"Downloading model {pull_name}...")
+            
+            result = subprocess.run(
+                ["docker-model", "pull", pull_name],
+                capture_output=True,
+                text=True,
+                timeout=300,  # 5 minutes timeout for download
+            )
+            
+            if result.returncode == 0:
+                logger.info(f"Successfully downloaded model {pull_name}")
+                return True
+            else:
+                logger.error(f"Failed to download model {pull_name}: {result.stderr}")
+                return False
+        except subprocess.TimeoutExpired:
+            logger.error(f"Timeout while downloading model {model_name}")
+            return False
+        except FileNotFoundError:
+            logger.error("docker-model command not found")
+            return False
+    
     def _write_cagent_config(self, path: Path) -> None:
         """Write cagent configuration file."""
+        # cagent v2 format
+        # Use the exact model requested by the user
+        model_id = self.config.model_id
+        
+        # Add dmr/ prefix if not already present and no other provider is specified
+        if "/" not in model_id:
+            model_id = f"dmr/{model_id}"
+        
         config = {
-            "agent": {
-                "name": self.config.name,
-                "description": self.config.description,
-                "type": self.config.agent_type,
-            },
-            "model": {
-                "id": self.config.model_id,
-                "provider": "docker-model",
-            },
-            "capabilities": list(self.config.capabilities),
-            "system_prompt": self.config.system_prompt,
-            "limits": {
-                "max_memory_mb": self.config.max_memory_mb,
-                "max_cpu_percent": self.config.max_cpu_percent,
-                "timeout_seconds": self.config.timeout_seconds,
-            },
-            "security": {
-                "allowed_commands": self.config.allowed_commands,
-                "denied_commands": self.config.denied_commands,
-            },
+            "version": "2",
+            "agents": {
+                "root": {
+                    "description": self.config.description or self.config.name,
+                    "instruction": self.config.system_prompt,
+                    "model": model_id,
+                }
+            }
         }
         
         with open(path, "w") as f:
@@ -368,6 +541,10 @@ class AgentManager:
         agent_type: Optional[AgentType] = None,
     ) -> list[Agent]:
         """List agents with optional filtering."""
+        # Update all agent statuses first
+        for agent in self.agents.values():
+            agent.update_status()
+        
         agents = list(self.agents.values())
         
         if status:

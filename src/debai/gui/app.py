@@ -51,7 +51,13 @@ class DebaiApplication(Adw.Application):
     def do_activate(self):
         """Called when the application is activated."""
         if not self.window:
-            self.window = DebaiWindow(application=self)
+            self.window = DebaiWindow(
+                application=self,
+                agent_manager=self.agent_manager,
+                model_manager=self.model_manager,
+                task_manager=self.task_manager,
+                resource_monitor=self.resource_monitor
+            )
         self.window.present()
     
     def do_startup(self):
@@ -142,6 +148,14 @@ class DebaiApplication(Adw.Application):
             padding: 8px 12px;
             margin: 4px 12px 4px 48px;
         }
+        
+        .user-message {
+            background: alpha(@accent_bg_color, 0.15);
+        }
+        
+        .assistant-message {
+            background: alpha(@card_bg_color, 0.9);
+        }
         """
         
         provider = Gtk.CssProvider()
@@ -200,11 +214,220 @@ class DebaiApplication(Adw.Application):
             self.window.show_new_task_dialog()
 
 
+class ChatWindow(Adw.Window):
+    """Chat window for interacting with an agent."""
+    
+    def __init__(self, agent, agent_manager, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.agent = agent
+        self.agent_manager = agent_manager
+        self.messages = []
+        
+        # Window setup
+        self.set_title(f"Chat: {agent.name}")
+        self.set_default_size(700, 600)
+        
+        # Main box
+        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.set_content(main_box)
+        
+        # Header bar
+        header = Adw.HeaderBar()
+        main_box.append(header)
+        
+        # Agent info
+        info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        info_box.set_margin_start(12)
+        info_box.set_margin_end(12)
+        info_box.set_margin_top(8)
+        info_box.set_margin_bottom(8)
+        
+        status_icon = Gtk.Image.new_from_icon_name("emblem-ok-symbolic")
+        status_icon.add_css_class("success")
+        info_box.append(status_icon)
+        
+        agent_label = Gtk.Label(label=f"{agent.name} ({agent.config.model_id})")
+        agent_label.add_css_class("caption")
+        info_box.append(agent_label)
+        
+        main_box.append(info_box)
+        
+        # Separator
+        main_box.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+        
+        # Chat area
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_vexpand(True)
+        scrolled.set_hexpand(True)
+        main_box.append(scrolled)
+        
+        self.chat_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.chat_box.set_margin_start(12)
+        self.chat_box.set_margin_end(12)
+        self.chat_box.set_margin_top(12)
+        self.chat_box.set_margin_bottom(12)
+        scrolled.set_child(self.chat_box)
+        
+        # Store scrolled window for auto-scroll
+        self.scrolled = scrolled
+        
+        # Welcome message
+        welcome_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        welcome_box.set_halign(Gtk.Align.CENTER)
+        welcome_box.set_valign(Gtk.Align.CENTER)
+        
+        welcome_icon = Gtk.Image.new_from_icon_name("user-available-symbolic")
+        welcome_icon.set_pixel_size(48)
+        welcome_icon.add_css_class("dim-label")
+        welcome_box.append(welcome_icon)
+        
+        welcome_label = Gtk.Label(label=f"Chat with {agent.name}")
+        welcome_label.add_css_class("title-2")
+        welcome_box.append(welcome_label)
+        
+        welcome_subtitle = Gtk.Label(label="Ask questions or give commands to the agent")
+        welcome_subtitle.add_css_class("dim-label")
+        welcome_box.append(welcome_subtitle)
+        
+        self.chat_box.append(welcome_box)
+        
+        # Input area
+        input_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        input_box.set_margin_start(12)
+        input_box.set_margin_end(12)
+        input_box.set_margin_top(8)
+        input_box.set_margin_bottom(12)
+        main_box.append(input_box)
+        
+        # Message entry
+        self.message_entry = Gtk.Entry()
+        self.message_entry.set_placeholder_text("Type your message...")
+        self.message_entry.set_hexpand(True)
+        self.message_entry.connect("activate", self._on_send_message)
+        input_box.append(self.message_entry)
+        
+        # Send button
+        send_btn = Gtk.Button(label="Send")
+        send_btn.add_css_class("suggested-action")
+        send_btn.connect("clicked", self._on_send_message)
+        input_box.append(send_btn)
+        
+        # Store send button to enable/disable
+        self.send_btn = send_btn
+    
+    def _add_message(self, role, content):
+        """Add a message to the chat."""
+        message_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        message_box.set_halign(Gtk.Align.START if role == "assistant" else Gtk.Align.END)
+        
+        # Message bubble
+        bubble = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        bubble.add_css_class("card")
+        bubble.set_margin_start(8)
+        bubble.set_margin_end(8)
+        bubble.set_margin_top(4)
+        bubble.set_margin_bottom(4)
+        
+        if role == "user":
+            bubble.add_css_class("user-message")
+        else:
+            bubble.add_css_class("assistant-message")
+        
+        # Role label
+        role_label = Gtk.Label(label="You" if role == "user" else self.agent.name)
+        role_label.add_css_class("caption")
+        role_label.add_css_class("dim-label")
+        role_label.set_halign(Gtk.Align.START)
+        role_label.set_margin_start(12)
+        role_label.set_margin_end(12)
+        role_label.set_margin_top(8)
+        bubble.append(role_label)
+        
+        # Message content
+        content_label = Gtk.Label(label=content)
+        content_label.set_wrap(True)
+        content_label.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        content_label.set_max_width_chars(60)
+        content_label.set_halign(Gtk.Align.START)
+        content_label.set_margin_start(12)
+        content_label.set_margin_end(12)
+        content_label.set_margin_bottom(8)
+        content_label.set_selectable(True)
+        bubble.append(content_label)
+        
+        message_box.append(bubble)
+        self.chat_box.append(message_box)
+        
+        # Auto-scroll to bottom
+        GLib.idle_add(self._scroll_to_bottom)
+    
+    def _scroll_to_bottom(self):
+        """Scroll chat to bottom."""
+        adj = self.scrolled.get_vadjustment()
+        adj.set_value(adj.get_upper() - adj.get_page_size())
+    
+    def _on_send_message(self, widget):
+        """Handle send message."""
+        message = self.message_entry.get_text().strip()
+        if not message:
+            return
+        
+        # Clear input
+        self.message_entry.set_text("")
+        
+        # Disable input while processing
+        self.message_entry.set_sensitive(False)
+        self.send_btn.set_sensitive(False)
+        
+        # Add user message
+        self._add_message("user", message)
+        
+        # Send to agent in background thread
+        def send_async():
+            try:
+                response = asyncio.run(self.agent.send_message(message))
+                
+                if response:
+                    GLib.idle_add(self._handle_response, response.content)
+                else:
+                    GLib.idle_add(self._handle_error, "No response from agent")
+            except Exception as e:
+                GLib.idle_add(self._handle_error, str(e))
+        
+        thread = threading.Thread(target=send_async, daemon=True)
+        thread.start()
+    
+    def _handle_response(self, content):
+        """Handle agent response."""
+        self._add_message("assistant", content)
+        
+        # Re-enable input
+        self.message_entry.set_sensitive(True)
+        self.send_btn.set_sensitive(True)
+        self.message_entry.grab_focus()
+    
+    def _handle_error(self, error_msg):
+        """Handle error."""
+        self._add_message("assistant", f"Error: {error_msg}")
+        
+        # Re-enable input
+        self.message_entry.set_sensitive(True)
+        self.send_btn.set_sensitive(True)
+        self.message_entry.grab_focus()
+
+
 class DebaiWindow(Adw.ApplicationWindow):
     """Main application window."""
     
-    def __init__(self, **kwargs):
+    def __init__(self, agent_manager=None, model_manager=None, task_manager=None, resource_monitor=None, **kwargs):
         super().__init__(**kwargs)
+        
+        # Store managers
+        self.agent_manager = agent_manager or AgentManager()
+        self.model_manager = model_manager or ModelManager()
+        self.task_manager = task_manager or TaskManager()
+        self.resource_monitor = resource_monitor or ResourceMonitor()
         
         self.set_title("Debai")
         self.set_default_size(1400, 900)
@@ -385,13 +608,12 @@ class DebaiWindow(Adw.ApplicationWindow):
         metrics_box.append(self.memory_metric)
         
         # Agents metric
-        app = self.get_application()
-        agent_count = len(app.agent_manager.list_agents()) if app else 0
+        agent_count = len(self.agent_manager.list_agents())
         self.agents_metric = self._create_metric_card("Agents", str(agent_count), "system-users-symbolic")
         metrics_box.append(self.agents_metric)
         
         # Tasks metric
-        task_count = len(app.task_manager.list_tasks()) if app else 0
+        task_count = len(self.task_manager.list_tasks()) if self.task_manager else 0
         self.tasks_metric = self._create_metric_card("Tasks", str(task_count), "view-list-symbolic")
         metrics_box.append(self.tasks_metric)
         
@@ -487,6 +709,26 @@ class DebaiWindow(Adw.ApplicationWindow):
         
         return card
     
+    def _update_dashboard_metrics(self):
+        """Update dashboard metrics with current values."""
+        app = self.get_application()
+        if not app:
+            return
+        
+        # Update agents count
+        agent_count = len(self.agent_manager.list_agents())
+        for child in self.agents_metric:
+            if isinstance(child, Gtk.Label) and "metric-value" in child.get_css_classes():
+                child.set_label(str(agent_count))
+                break
+        
+        # Update tasks count
+        task_count = len(self.task_manager.list_tasks())
+        for child in self.tasks_metric:
+            if isinstance(child, Gtk.Label) and "metric-value" in child.get_css_classes():
+                child.set_label(str(task_count))
+                break
+    
     def _create_agents_page(self) -> Gtk.Widget:
         """Create the agents page."""
         page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -549,11 +791,9 @@ class DebaiWindow(Adw.ApplicationWindow):
                 break
             self.agents_list.remove(row)
         
-        app = self.get_application()
-        if not app:
-            return
-        
-        agents = app.agent_manager.list_agents()
+        # Load agents from manager
+        self.agent_manager.load_agents()
+        agents = self.agent_manager.list_agents()
         
         if not agents:
             # Empty state
@@ -958,8 +1198,7 @@ class DebaiWindow(Adw.ApplicationWindow):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                app = self.get_application()
-                success = loop.run_until_complete(app.agent_manager.start_agent(agent_id))
+                success = loop.run_until_complete(self.agent_manager.start_agent(agent_id))
                 if success:
                     GLib.idle_add(self._show_agent_started, agent_id)
                 else:
@@ -981,8 +1220,7 @@ class DebaiWindow(Adw.ApplicationWindow):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                app = self.get_application()
-                success = loop.run_until_complete(app.agent_manager.stop_agent(agent_id))
+                success = loop.run_until_complete(self.agent_manager.stop_agent(agent_id))
                 if success:
                     GLib.idle_add(self._show_agent_stopped, agent_id)
                 else:
@@ -999,8 +1237,7 @@ class DebaiWindow(Adw.ApplicationWindow):
     def _on_delete_agent(self, button):
         """Delete an agent."""
         agent_id = button.agent_id
-        app = self.get_application()
-        agent = app.agent_manager.get_agent(agent_id)
+        agent = self.agent_manager.get_agent(agent_id)
         
         if not agent:
             return
@@ -1022,8 +1259,7 @@ class DebaiWindow(Adw.ApplicationWindow):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                app = self.get_application()
-                success = loop.run_until_complete(app.agent_manager.delete_agent(agent_id))
+                success = loop.run_until_complete(self.agent_manager.delete_agent(agent_id))
                 if success:
                     GLib.idle_add(self._show_agent_deleted, agent_id)
                 else:
@@ -1040,14 +1276,34 @@ class DebaiWindow(Adw.ApplicationWindow):
     def _on_chat_agent(self, button):
         """Open chat with agent."""
         agent_id = button.agent_id
-        # TODO: Implement chat interface
-        dialog = Adw.MessageDialog(
-            transient_for=self,
-            heading="Chat",
-            body="Chat interface coming soon!",
-        )
-        dialog.add_response("ok", "OK")
-        dialog.present()
+        agent = self.agent_manager.get_agent(agent_id)
+        
+        if not agent:
+            dialog = Adw.MessageDialog(
+                transient_for=self,
+                heading="Error",
+                body="Agent not found",
+            )
+            dialog.add_response("ok", "OK")
+            dialog.present()
+            return
+        
+        # Check if agent is running
+        agent.update_status()
+        if not agent.is_alive():
+            dialog = Adw.MessageDialog(
+                transient_for=self,
+                heading="Agent Not Running",
+                body=f"Agent '{agent.name}' is not running. Please start it first.",
+            )
+            dialog.add_response("ok", "OK")
+            dialog.present()
+            return
+        
+        # Open chat window
+        chat_window = ChatWindow(agent=agent, agent_manager=self.agent_manager)
+        chat_window.set_transient_for(self)
+        chat_window.present()
     
     def _show_agent_started(self, agent_id):
         """Show agent started notification and refresh."""
@@ -1077,8 +1333,7 @@ class DebaiWindow(Adw.ApplicationWindow):
     
     def show_new_agent_dialog(self):
         """Show dialog to create a new agent."""
-        app = self.get_application()
-        dialog = NewAgentDialog(transient_for=self, agent_manager=app.agent_manager)
+        dialog = NewAgentDialog(transient_for=self, agent_manager=self.agent_manager, main_window=self)
         dialog.present()
     
     def show_new_task_dialog(self):
@@ -1095,10 +1350,11 @@ class DebaiWindow(Adw.ApplicationWindow):
 class NewAgentDialog(Adw.Window):
     """Dialog for creating a new agent."""
     
-    def __init__(self, agent_manager: AgentManager, **kwargs):
+    def __init__(self, agent_manager: AgentManager, main_window, **kwargs):
         super().__init__(**kwargs)
         
         self.agent_manager = agent_manager
+        self.main_window = main_window
         self.set_title("Create Agent")
         self.set_default_size(500, 600)
         self.set_modal(True)
@@ -1278,6 +1534,11 @@ class NewAgentDialog(Adw.Window):
     
     def _show_success(self, name):
         """Show success dialog."""
+        # Refresh the agents list in the main window
+        if self.main_window:
+            self.main_window._refresh_agents()
+            self.main_window._update_dashboard_metrics()
+        
         success_dialog = Adw.MessageDialog(
             transient_for=self,
             heading="Success",
